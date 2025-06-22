@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import styled from 'styled-components'
 import { MCPNode, MCPProvider } from '../types'
+import ConfigModal from './ConfigModal'
 
 const SidebarContainer = styled.div`
   height: 100%;
@@ -112,6 +113,7 @@ interface MCPSidebarProps {
 const MCPSidebar: React.FC<MCPSidebarProps> = ({ onAddNode }) => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [activeProvider, setActiveProvider] = useState<MCPProvider | null>(null)
 
   const mcpProviders: MCPProvider[] = [
     {
@@ -224,12 +226,12 @@ const MCPSidebar: React.FC<MCPSidebarProps> = ({ onAddNode }) => {
     return matchesSearch && matchesCategory
   })
 
-  const handleAddMCPNode = (provider: MCPProvider) => {
+  const handleAddMCPNode = (provider: MCPProvider, config: Record<string, any> = {}) => {
     const nodeTemplate: Partial<MCPNode> = {
       type: provider.id as any,
       name: provider.name,
       description: provider.description,
-      config: {},
+      config,
       inputs: [
         { id: 'input', name: 'Input', type: 'data', required: false }
       ],
@@ -241,7 +243,16 @@ const MCPSidebar: React.FC<MCPSidebarProps> = ({ onAddNode }) => {
     onAddNode(nodeTemplate)
   }
 
+  const handleProviderClick = (provider: MCPProvider) => {
+    if (provider.id === 'mysql') {
+      setActiveProvider(provider)
+    } else {
+      handleAddMCPNode(provider)
+    }
+  }
+
   return (
+    <>
     <SidebarContainer>
       <SidebarHeader>
         <SidebarTitle>MCP Providers</SidebarTitle>
@@ -269,7 +280,7 @@ const MCPSidebar: React.FC<MCPSidebarProps> = ({ onAddNode }) => {
         {filteredProviders.map(provider => (
           <MCPItem
             key={provider.id}
-            onClick={() => handleAddMCPNode(provider)}
+            onClick={() => handleProviderClick(provider)}
           >
             <MCPName>{provider.icon} {provider.name}</MCPName>
             <MCPDescription>{provider.description}</MCPDescription>
@@ -278,6 +289,17 @@ const MCPSidebar: React.FC<MCPSidebarProps> = ({ onAddNode }) => {
         ))}
       </MCPList>
     </SidebarContainer>
+    {activeProvider && (
+      <ConfigModal
+        provider={activeProvider}
+        onCancel={() => setActiveProvider(null)}
+        onSubmit={(config) => {
+          handleAddMCPNode(activeProvider, config)
+          setActiveProvider(null)
+        }}
+      />
+    )}
+    </>
   )
 }
 
