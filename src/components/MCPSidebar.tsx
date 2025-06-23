@@ -237,7 +237,25 @@ const MCPSidebar: React.FC<MCPSidebarProps> = ({ onAddNode }) => {
         { id: 'output', name: 'Output', type: 'data', required: false }
       ]
     }
-    
+
+    if (provider.id === 'elasticsearch') {
+      const host = window.prompt('Elasticsearch Host', 'http://localhost:9200')
+      if (host === null) return
+      const username = window.prompt('Username', '')
+      if (username === null) return
+      const password = window.prompt('Password', '')
+      if (password === null) return
+      const index = window.prompt('Default Index', '')
+      if (index === null) return
+
+      nodeTemplate.config = {
+        host,
+        username,
+        password,
+        index
+      }
+    }
+
     onAddNode(nodeTemplate)
   }
 
